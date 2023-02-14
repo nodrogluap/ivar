@@ -292,7 +292,7 @@ int main(int argc, char *argv[]) {
   if (cmd.compare("trim") == 0) {
     g_args.min_qual = 20;
     g_args.sliding_window = 4;
-    g_args.min_length = 30;
+    g_args.min_length = -1;
     g_args.write_no_primers_flag = false;
     g_args.keep_for_reanalysis = false;
     g_args.bed = "";
