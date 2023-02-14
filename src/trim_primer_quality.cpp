@@ -485,7 +485,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
                          std::string region_, uint8_t min_qual,
                          uint8_t sliding_window, std::string cmd,
                          bool write_no_primer_reads, bool keep_for_reanalysis,
-                         int min_length = 30, std::string pair_info = "",
+                         int min_length = -1, std::string pair_info = "",
                          int32_t primer_offset = 0) {
   int retval = 0;
   std::vector<primer> primers;
@@ -598,8 +598,19 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   bool primer_trimmed = false;
   std::string test = "NB552570:188:HL75JAFX3:2:21105:7297:5549";
 
+  bool first_pass = true;
   // Iterate through reads
   while (sam_itr_next(in, iter, aln) >= 0) {
+    // make default min_length default of expected read
+    if(first_pass && min_length == -1){
+      int32_t query_length = aln->core.l_qseq;
+      //std::cout << "query_length " << query_length << std::endl;
+      int32_t percent_query = 0.50 * query_length;
+      //std::cout << "percent_query " << percent_query << std::endl;
+      min_length = percent_query;
+      first_pass = false;
+      std::cout << "Minimum Read Length: " << min_length << std::endl;
+    }
     unmapped_flag = false;
     primer_trimmed = false;
 
