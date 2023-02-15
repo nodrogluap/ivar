@@ -35,7 +35,7 @@ struct args_t {
   std::string f1;                // -1
   std::string f2;                // -2
   std::string adp_path;          // -a
-  uint8_t min_depth;             // -m
+  uint32_t min_depth;             // -m
   char gap;                      // -n
   bool keep_min_coverage;        // -k
   std::string primer_pair_file;  // -f

@@ -31,7 +31,7 @@ double *get_frequency_depth(
 
 int call_variants_from_plup(std::istream &cin, std::string out_file,
                             uint8_t min_qual, double min_threshold,
-                            uint8_t min_depth, std::string ref_path,
+                            uint32_t min_depth, std::string ref_path,
                             std::string gff_path) {
   std::string line, cell, bases, qualities, region;
   ref_antd refantd(ref_path, gff_path);
