@@ -70,7 +70,7 @@ void print_trim_usage() {
       << "Usage: ivar trim -i <input.bam> -b <primers.bed> -p <prefix> [-m "
          "<min-length>] [-q <min-quality>] [-s <sliding-window-width>]\n\n"
          "Input Options    Description\n"
-         "           -i    (Required) Sorted bam file, with aligned reads, to "
+         "           -i    (Required) BAM file, with aligned reads, to "
          "trim primers and quality\n"
          "           -b    BED file with primer sequences and positions. If no "
          "BED file is specified, only quality trimming will be done.\n"
@@ -339,16 +339,20 @@ int main(int argc, char *argv[]) {
       }
       opt = getopt(argc, argv, trim_opt_str);
     }
-    if (g_args.bam.empty() || g_args.prefix.empty()) {
+    if (g_args.bam.empty() && isatty(STDIN_FILENO)) {
+      std::cout << "Please supply a BAM file using -i or supply the input file "
+                   "through standard input"
+                << std::endl
+                << std::endl;
       print_trim_usage();
       return -1;
     }
     g_args.prefix = get_filename_without_extension(g_args.prefix, ".bam");
-    res = trim_bam_qual_primer(
-        g_args.bam, g_args.bed, g_args.prefix, g_args.region, g_args.min_qual,
-        g_args.sliding_window, cl_cmd.str(), g_args.write_no_primers_flag,
-        g_args.keep_for_reanalysis, g_args.min_length, g_args.primer_pair_file,
-        g_args.primer_offset);
+    res = trim_bam_qual_primer(g_args.bam, g_args.bed, g_args.prefix,
+                               g_args.min_qual, g_args.sliding_window,
+                               cl_cmd.str(), g_args.write_no_primers_flag,
+                               g_args.keep_for_reanalysis, g_args.min_length,
+                               g_args.primer_pair_file, g_args.primer_offset);
   }
   // ivar variants
   else if (cmd.compare("variants") == 0) {
