@@ -531,13 +531,15 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
 
   // Get the header
   sam_hdr_t *header = sam_hdr_read(in);
-  if (header != NULL) {
-    add_pg_line_to_header(&header, const_cast<char *>(cmd.c_str()));
-    if (sam_hdr_write(out, header) < 0) {
-      std::cerr << "Unable to write BAM header to path." << std::endl;
-      sam_close(in);
-      return -1;
-    }
+  if (header == NULL) {
+    std::cerr << "Unable to read header from input file." << std::endl;
+    return -1;
+  }
+  add_pg_line_to_header(&header, const_cast<char *>(cmd.c_str()));
+  if (sam_hdr_write(out, header) < 0) {
+    std::cerr << "Unable to write BAM header to path." << std::endl;
+    sam_close(in);
+    return -1;
   }
 
   // Initiate the alignment record
@@ -703,8 +705,8 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
       }
     }
     ctr++;
-    if (ctr % 1000 == 0) {
-      std::cout << "Processed " << ctr << " reads ... "
+    if (ctr % 1000000 == 0) { // TODO: Let this be a parameter
+      std::cerr << "Processed " << ctr << " reads ... "
                 << std::endl;
     }
   }
