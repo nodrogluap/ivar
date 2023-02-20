@@ -386,20 +386,20 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
   }
 
   // sort it first
-  std::vector<primer> test = insertionSort(primers, primers.size());
-  // std::cerr << test.size() << "\n";
+  //std::vector<primer> test = insertionSort(primers, primers.size());
+  // std::cout << test.size() << "\n";
   // then we iterate and push what fits
-  for (std::vector<primer>::iterator it = test.begin(); it != test.end();
+  for (std::vector<primer>::iterator it = primers.begin(); it != primers.end();
        ++it) {
     // if we've passed the end, we're going to find no more matches
     if (start_pos < it->get_start()) {
-      // std::cerr << "break start_pos: " << start_pos << " start:  " <<
+      // std::cout << "break start_pos: " << start_pos << " start:  " <<
       // it->get_end() << " end: " << it->get_start() << "\n";
       break;
     }
     if (start_pos >= it->get_start() && start_pos <= it->get_end() &&
         (strand == it->get_strand() || it->get_strand() == 0))
-      // std::cerr << it->get_start() << " " << start_pos << "\n";
+      // std::cout << it->get_start() << " " << start_pos << "\n";
       overlapped_primers.push_back(*it);
   }
 }
@@ -557,12 +557,12 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   std::vector<primer>::iterator cit;
   bool primer_trimmed = false;
 
+  std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
   // Iterate through reads
   while (sam_read1(in, header, aln) >= 0) {
     unmapped_flag = false;
     primer_trimmed = false;
-
-    get_overlapping_primers(aln, primers, overlapping_primers);
+    get_overlapping_primers(aln, sorted_primers, overlapping_primers);
 
     if ((aln->core.flag & BAM_FUNMAP) == 0) {  // If mapped
       // if primer pair info provided, check if read correctly overlaps with
@@ -588,7 +588,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
           (abs(aln->core.isize) - max_primer_len) > abs(aln->core.l_qseq);
       // if reverse strand
       if ((aln->core.flag & BAM_FPAIRED) != 0 && isize_flag) {  // If paired
-        get_overlapping_primers(aln, primers, overlapping_primers);
+        get_overlapping_primers(aln, sorted_primers, overlapping_primers);
         if (overlapping_primers.size() >
             0) {  // If read starts before overlapping regions (?)
           primer_trimmed = true;
