@@ -404,25 +404,48 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
   int low = 0;
   int high = primers.size();
   // then we iterate and push what fits
-  int loc = binary_search(primers, start_pos, low,
+  int loc_exact = binary_search(primers, start_pos, low,
                  high);
-  
-  primer possible_match = primers[loc]; 
+  primer possible_match = primers[loc_exact]; 
   if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
       (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
     overlapped_primers.push_back(possible_match);
   }
-  /*for (std::vector<primer>::iterator it = primers.begin(); it != primers.end();
-       ++it) {
-    // if we've passed the end, we're going to find no more matches
-    if (start_pos < it->get_start()) {
-      break;
+  int loc = 0;
+  bool done_right = false;
+  bool done_left = false;
+  int i = 1;
+  while(!done_left && !done_right){
+    loc = loc_exact + i;
+    if(loc >= low && loc <= high){
+      possible_match = primers[loc]; 
+
+      if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+          (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+        overlapped_primers.push_back(possible_match);
+      }
+      if(start_pos < possible_match.get_start()){
+        done_right = true;
+      }
+    } else{
+      done_right = true;
     }
-    if (start_pos >= it->get_start() && start_pos <= it->get_end() &&
-        (strand == it->get_strand() || it->get_strand() == 0))
-      // std::cout << it->get_start() << " " << start_pos << "\n";
-      overlapped_primers.push_back(*it);
-  }*/
+  
+    loc = loc_exact - i;
+    if(loc >= low && loc <= high){
+      possible_match = primers[loc]; 
+      if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+          (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+        overlapped_primers.push_back(possible_match);
+      }
+      if(start_pos > possible_match.get_end()){
+        done_left = true;
+      }
+    } else{
+      done_left = true;
+    }
+    i++;
+  }
 }
 
 // For unpaired reads
