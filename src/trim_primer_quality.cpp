@@ -351,8 +351,24 @@ int binarySearch(std::vector<primer> primers, uint32_t item, int low,
   return low;
 }
 
+int binary_search(std::vector<primer> primers, uint32_t target_pos, int low,
+                 int high) {
+  while (low <= high) {
+    int mid = low + (high - low) / 2;
+    //success condition
+    if (target_pos >= primers[mid].get_start() && target_pos <= primers[mid].get_end()) {
+      return mid;
+    } else if (target_pos > primers[mid].get_end()) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+}
+
+
 std::vector<primer> insertionSort(std::vector<primer> primers, uint32_t n) {
-  // std::cerr << "in insertion sort length: " << n << "\n";
   uint32_t i = 0;
   int loc = 0;
   int j = 0;
@@ -384,24 +400,29 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
   } else {
     start_pos = r->core.pos;
   }
-
-  // sort it first
-  //std::vector<primer> test = insertionSort(primers, primers.size());
-  // std::cout << test.size() << "\n";
+ 
+  int low = 0;
+  int high = primers.size();
   // then we iterate and push what fits
-  for (std::vector<primer>::iterator it = primers.begin(); it != primers.end();
+  int loc = binary_search(primers, start_pos, low,
+                 high);
+  
+  primer possible_match = primers[loc]; 
+  if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+      (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+    overlapped_primers.push_back(possible_match);
+  }
+  /*for (std::vector<primer>::iterator it = primers.begin(); it != primers.end();
        ++it) {
     // if we've passed the end, we're going to find no more matches
     if (start_pos < it->get_start()) {
-      // std::cout << "break start_pos: " << start_pos << " start:  " <<
-      // it->get_end() << " end: " << it->get_start() << "\n";
       break;
     }
     if (start_pos >= it->get_start() && start_pos <= it->get_end() &&
         (strand == it->get_strand() || it->get_strand() == 0))
       // std::cout << it->get_start() << " " << start_pos << "\n";
       overlapped_primers.push_back(*it);
-  }
+  }*/
 }
 
 // For unpaired reads
