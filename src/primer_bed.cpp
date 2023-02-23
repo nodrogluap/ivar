@@ -41,10 +41,10 @@ void primer::set_read_count(uint32_t rc) { read_count = rc; }
 void primer::add_read_count(uint32_t rc) { read_count += rc; }
 
 void print_bed_format() {
-  std::cout << "iVar uses the standard 6 column BED format as defined here - "
+  std::cerr << "iVar uses the standard 6 column BED format as defined here - "
                "https://genome.ucsc.edu/FAQ/FAQformat.html#format1."
             << std::endl;
-  std::cout << "It requires the following columns delimited by a tab: chrom, "
+  std::cerr << "It requires the following columns delimited by a tab: chrom, "
                "chromStart, chromEnd, name, score, strand"
             << std::endl;
 }
@@ -93,7 +93,7 @@ std::vector<primer> populate_from_file(std::string path, int32_t offset = 0) {
           } else {
             print_bed_format();  // score is missing, send warning but continue
                                  // populating
-            std::cout
+            std::cerr
                 << "\nWARNING: The BED file provided did not have the expected "
                    "score column, but iVar will continue trimming\n"
                 << std::endl;
@@ -112,7 +112,7 @@ std::vector<primer> populate_from_file(std::string path, int32_t offset = 0) {
       ctr++;
     }
     if (indice == 0 && ctr < 6)
-      std::cout << "Strand not found in primer BED file so strand will not be "
+      std::cerr << "Strand not found in primer BED file so strand will not be "
                    "considered for trimming"
                 << std::endl;
     p.set_indice(indice);
@@ -121,7 +121,7 @@ std::vector<primer> populate_from_file(std::string path, int32_t offset = 0) {
     primers.push_back(p);
     indice++;
   }
-  std::cout << "Found " << primers.size() << " primers in BED file"
+  std::cerr << "Found " << primers.size() << " primers in BED file"
             << std::endl;
   return primers;
 }
@@ -169,7 +169,7 @@ std::vector<primer> populate_from_file(std::string path) {
           } else {
             print_bed_format();  // score is missing, send warning but continue
                                  // populating
-            std::cout
+            std::cerr
                 << "\nWARNING: The BED file provided did not have the expected "
                    "score column, but iVar will continue trimming\n"
                 << std::endl;
@@ -188,7 +188,7 @@ std::vector<primer> populate_from_file(std::string path) {
       ctr++;
     }
     if (indice == 0 && ctr < 6)
-      std::cout << "Strand not found in primer BED file so strand will not be "
+      std::cerr << "Strand not found in primer BED file so strand will not be "
                    "considered for trimming"
                 << std::endl;
     p.set_indice(indice);
@@ -197,7 +197,7 @@ std::vector<primer> populate_from_file(std::string path) {
     primers.push_back(p);
     indice++;
   }
-  std::cout << "Found " << primers.size() << " primers in BED file"
+  std::cerr << "Found " << primers.size() << " primers in BED file"
             << std::endl;
   return primers;
 }
@@ -266,7 +266,7 @@ int populate_pair_indices(std::vector<primer>& primers, std::string path) {
           if (indice != -1) {
             it->set_pair_indice(indice);
           } else {
-            std::cout << "Primer pair for " << p1 << " not found in BED file."
+            std::cerr << "Primer pair for " << p1 << " not found in BED file."
                       << std::endl;
           }
         } else if (it->get_name() == p2) {
@@ -274,12 +274,12 @@ int populate_pair_indices(std::vector<primer>& primers, std::string path) {
           if (indice != -1)
             it->set_pair_indice(indice);
           else
-            std::cout << "Primer pair for " << p2 << " not found in BED file."
+            std::cerr << "Primer pair for " << p2 << " not found in BED file."
                       << std::endl;
         }
       }
     } else {
-      std::cout << "Primer pair is empty." << std::endl;
+      std::cerr << "Primer pair is empty." << std::endl;
     }
   }
   return 0;
@@ -303,18 +303,18 @@ primer get_max_end(std::vector<primer> primers) {
 void print_all_primer_info(std::vector<primer> primers) {
   std::vector<primer>::iterator it;
   for (it = primers.begin(); it != primers.end(); ++it) {
-    std::cout << "Primer name: " << it->get_name() << std::endl;
-    std::cout << "Primer start: " << it->get_start() << std::endl;
-    std::cout << "Primer end: " << it->get_end() << std::endl;
-    std::cout << "Indice: " << it->get_indice() << std::endl;
-    std::cout << "Pair indice: " << it->get_pair_indice() << std::endl;
+    std::cerr << "Primer name: " << it->get_name() << std::endl;
+    std::cerr << "Primer start: " << it->get_start() << std::endl;
+    std::cerr << "Primer end: " << it->get_end() << std::endl;
+    std::cerr << "Indice: " << it->get_indice() << std::endl;
+    std::cerr << "Pair indice: " << it->get_pair_indice() << std::endl;
   }
 }
 
 void print_primer_info(primer primer) {
-  std::cout << "Primer name: " << primer.get_name() << std::endl;
-  std::cout << "Primer start: " << primer.get_start() << std::endl;
-  std::cout << "Primer end: " << primer.get_end() << std::endl;
-  std::cout << "Indice: " << primer.get_indice() << std::endl;
-  std::cout << "Pair indice: " << primer.get_pair_indice() << std::endl;
+  std::cerr << "Primer name: " << primer.get_name() << std::endl;
+  std::cerr << "Primer start: " << primer.get_start() << std::endl;
+  std::cerr << "Primer end: " << primer.get_end() << std::endl;
+  std::cerr << "Indice: " << primer.get_indice() << std::endl;
+  std::cerr << "Pair indice: " << primer.get_pair_indice() << std::endl;
 }
