@@ -351,7 +351,7 @@ int binarySearch(std::vector<primer> primers, uint32_t item, int low,
   return low;
 }
 
-int binary_search(std::vector<primer> primers, uint32_t target_pos, int low,
+int binary_search(std::vector<primer> &primers, uint32_t target_pos, int low,
                  int high) {
   while (low <= high) {
     int mid = low + (high - low) / 2;
