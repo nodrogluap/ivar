@@ -603,22 +603,26 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   std::vector<primer>::iterator cit;
   bool primer_trimmed = false;
 
-
   //make default min_length default of expected read length
   if(min_length == -1){
     int32_t total_length = 0;
     int32_t count_reads = 0;
-    while(sam_itr_next(in, iter, aln) >= 0 && count_reads < 1000){
+    while(sam_read1(in, header, aln) >= 0 && count_reads < 1000){
       count_reads += 1;
       total_length += aln->core.l_qseq;
     }
     int32_t percent_query = 0.50 * (total_length / count_reads);
     min_length = percent_query;   
-    std::cout << "Minimum Read Length: " << min_length << std::endl; 
+    std::cerr << "Minimum Read Length: " << min_length << std::endl; 
   }
+
   //reset the iterator
-  iter = sam_itr_querys(idx, header, region_.c_str());
   std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
+  in = sam_open(bam.c_str(), "r");
+  header = sam_hdr_read(in);
+  add_pg_line_to_header(&header, const_cast<char *>(cmd.c_str()));
+  aln = bam_init1(); 
+
   // Iterate through reads
   while (sam_read1(in, header, aln) >= 0) {
     unmapped_flag = false;
