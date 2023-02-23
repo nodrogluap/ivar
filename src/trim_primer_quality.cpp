@@ -529,7 +529,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
                          uint8_t min_qual,
                          uint8_t sliding_window, std::string cmd,
                          bool write_no_primer_reads, bool keep_for_reanalysis,
-                         int min_length = 30, std::string pair_info = "",
+                         int min_length = -1, std::string pair_info = "",
                          int32_t primer_offset = 0) {
   int retval = 0;
   std::vector<primer> primers;
@@ -603,6 +603,21 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   std::vector<primer>::iterator cit;
   bool primer_trimmed = false;
 
+
+  //make default min_length default of expected read length
+  if(min_length == -1){
+    int32_t total_length = 0;
+    int32_t count_reads = 0;
+    while(sam_itr_next(in, iter, aln) >= 0 && count_reads < 1000){
+      count_reads += 1;
+      total_length += aln->core.l_qseq;
+    }
+    int32_t percent_query = 0.50 * (total_length / count_reads);
+    min_length = percent_query;   
+    std::cout << "Minimum Read Length: " << min_length << std::endl; 
+  }
+  //reset the iterator
+  iter = sam_itr_querys(idx, header, region_.c_str());
   std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
   // Iterate through reads
   while (sam_read1(in, header, aln) >= 0) {
