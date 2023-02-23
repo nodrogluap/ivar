@@ -406,10 +406,13 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
   // then we iterate and push what fits
   int loc_exact = binary_search(primers, start_pos, low,
                  high);
-  primer possible_match = primers[loc_exact]; 
-  if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
-      (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
-    overlapped_primers.push_back(possible_match);
+  primer possible_match;
+  if(loc_exact >= low && loc_exact < high){ 
+      possible_match = primers[loc_exact]; 
+      if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+          (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+        overlapped_primers.push_back(possible_match);
+      }
   }
   int loc = 0;
   bool done_right = false;
@@ -417,7 +420,7 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
   int i = 1;
   while(!done_left && !done_right){
     loc = loc_exact + i;
-    if(loc >= low && loc <= high){
+    if(loc >= low && loc < high){
       possible_match = primers[loc]; 
 
       if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
@@ -432,7 +435,7 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
     }
   
     loc = loc_exact - i;
-    if(loc >= low && loc <= high){
+    if(loc >= low && loc < high){
       possible_match = primers[loc]; 
       if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
           (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
