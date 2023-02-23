@@ -598,19 +598,22 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   bool primer_trimmed = false;
   std::string test = "NB552570:188:HL75JAFX3:2:21105:7297:5549";
 
-  bool first_pass = true;
+  //make default min_length default of expected read length
+  if(min_length == -1){
+    int32_t total_length = 0;
+    int32_t count_reads = 0;
+    while(sam_itr_next(in, iter, aln) >= 0 && count_reads < 1000){
+      count_reads += 1;
+      total_length += aln->core.l_qseq;
+    }
+    int32_t percent_query = 0.50 * (total_length / count_reads);
+    min_length = percent_query;   
+    std::cout << "Minimum Read Length: " << min_length << std::endl; 
+  }
+  //reset the iterator
+  iter = sam_itr_querys(idx, header, region_.c_str());
   // Iterate through reads
   while (sam_itr_next(in, iter, aln) >= 0) {
-    // make default min_length default of expected read
-    if(first_pass && min_length == -1){
-      int32_t query_length = aln->core.l_qseq;
-      //std::cout << "query_length " << query_length << std::endl;
-      int32_t percent_query = 0.50 * query_length;
-      //std::cout << "percent_query " << percent_query << std::endl;
-      min_length = percent_query;
-      first_pass = false;
-      std::cout << "Minimum Read Length: " << min_length << std::endl;
-    }
     unmapped_flag = false;
     primer_trimmed = false;
 
