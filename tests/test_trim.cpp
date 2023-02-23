@@ -32,7 +32,7 @@ int test_trim(uint8_t min_qual, uint8_t sliding_window, bool no_write_flag,
 
   // Test and check result
   res = trim_bam_qual_primer(
-      bam, bed, prefix, region_, min_qual, sliding_window, cmd, no_write_flag,
+      bam, bed, prefix, min_qual, sliding_window, cmd, no_write_flag,
       keep_for_reanalysis, min_length, pair_info, primer_offset);
   if (res) {
     success = -1;

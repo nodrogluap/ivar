@@ -168,10 +168,10 @@ cigar_ quality_trim(bam1_t *r, uint8_t qual_threshold, uint8_t sliding_window) {
 
 void print_cigar(uint32_t *cigar, int nlength) {
   for (int i = 0; i < nlength; ++i) {
-    std::cout << ((cigar[i]) & BAM_CIGAR_MASK);
-    std::cout << "-" << ((cigar[i]) >> BAM_CIGAR_SHIFT) << " ";
+    std::cerr << ((cigar[i]) & BAM_CIGAR_MASK);
+    std::cerr << "-" << ((cigar[i]) >> BAM_CIGAR_SHIFT) << " ";
   }
-  std::cout << std::endl;
+  std::cerr << std::endl;
 }
 
 // the tricky function to change, edit with caution
@@ -300,7 +300,7 @@ cigar_ primer_trim(bam1_t *r, bool &isize_flag, int32_t new_pos,
   /*
   uint32_t p=0;
   while(p < j){
-    std::cout << bam_cigar_op(ncigar[p]) << " " << bam_cigar_oplen(ncigar[p])
+    std::cerr << bam_cigar_op(ncigar[p]) << " " << bam_cigar_oplen(ncigar[p])
   <<"\n"; p++;
   }*/
 
@@ -330,9 +330,9 @@ void replace_cigar(bam1_t *b, uint32_t n, uint32_t *cigar) {
 void print_primers(std::vector<primer> primers) {
   for (std::vector<primer>::iterator it = primers.begin(); it != primers.end();
        ++it) {
-    std::cout << "Get Start " << it->get_start() << "\n";
-    std::cout << "Get End " << it->get_end() << "\n";
-    std::cout << "Index " << it->get_indice() << "\n";
+    std::cerr << "Get Start " << it->get_start() << "\n";
+    std::cerr << "Get End " << it->get_end() << "\n";
+    std::cerr << "Index " << it->get_indice() << "\n";
   }
 }
 
@@ -351,8 +351,24 @@ int binarySearch(std::vector<primer> primers, uint32_t item, int low,
   return low;
 }
 
+int binary_search(std::vector<primer> &primers, uint32_t target_pos, int low,
+                 int high) {
+  while (low <= high) {
+    int mid = low + (high - low) / 2;
+    //success condition
+    if (target_pos >= primers[mid].get_start() && target_pos <= primers[mid].get_end()) {
+      return mid;
+    } else if (target_pos > primers[mid].get_end()) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+}
+
+
 std::vector<primer> insertionSort(std::vector<primer> primers, uint32_t n) {
-  // std::cout << "in insertion sort length: " << n << "\n";
   uint32_t i = 0;
   int loc = 0;
   int j = 0;
@@ -384,23 +400,51 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
   } else {
     start_pos = r->core.pos;
   }
-
-  // sort it first
-  std::vector<primer> test = insertionSort(primers, primers.size());
-  // std::cout << test.size() << "\n";
+ 
+  int low = 0;
+  int high = primers.size();
   // then we iterate and push what fits
-  for (std::vector<primer>::iterator it = test.begin(); it != test.end();
-       ++it) {
-    // if we've passed the end, we're going to find no more matches
-    if (start_pos < it->get_start()) {
-      // std::cout << "break start_pos: " << start_pos << " start:  " <<
-      // it->get_end() << " end: " << it->get_start() << "\n";
-      break;
+  int loc_exact = binary_search(primers, start_pos, low,
+                 high);
+  primer possible_match = primers[loc_exact]; 
+  if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+      (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+    overlapped_primers.push_back(possible_match);
+  }
+  int loc = 0;
+  bool done_right = false;
+  bool done_left = false;
+  int i = 1;
+  while(!done_left && !done_right){
+    loc = loc_exact + i;
+    if(loc >= low && loc <= high){
+      possible_match = primers[loc]; 
+
+      if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+          (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+        overlapped_primers.push_back(possible_match);
+      }
+      if(start_pos < possible_match.get_start()){
+        done_right = true;
+      }
+    } else{
+      done_right = true;
     }
-    if (start_pos >= it->get_start() && start_pos <= it->get_end() &&
-        (strand == it->get_strand() || it->get_strand() == 0))
-      // std::cout << it->get_start() << " " << start_pos << "\n";
-      overlapped_primers.push_back(*it);
+  
+    loc = loc_exact - i;
+    if(loc >= low && loc <= high){
+      possible_match = primers[loc]; 
+      if(start_pos >= possible_match.get_start() && start_pos <= possible_match.get_end() &&
+          (strand == possible_match.get_strand() || possible_match.get_strand() == 0)){
+        overlapped_primers.push_back(possible_match);
+      }
+      if(start_pos > possible_match.get_end()){
+        done_left = true;
+      }
+    } else{
+      done_left = true;
+    }
+    i++;
   }
 }
 
@@ -443,7 +487,7 @@ void condense_cigar(cigar_ *t) {
   }
 }
 
-void add_pg_line_to_header(bam_hdr_t **hdr, char *cmd) {
+void add_pg_line_to_header(sam_hdr_t **hdr, char *cmd) {
   size_t len = strlen((*hdr)->text) + strlen(cmd) + 1;
   char *new_text = (char *)malloc(len);
   memcpy(new_text, (*hdr)->text, strlen((*hdr)->text));
@@ -482,7 +526,7 @@ bool amplicon_filter(IntervalTree amplicons, bam1_t *r) {
 }
 
 int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
-                         std::string region_, uint8_t min_qual,
+                         uint8_t min_qual,
                          uint8_t sliding_window, std::string cmd,
                          bool write_no_primer_reads, bool keep_for_reanalysis,
                          int min_length = -1, std::string pair_info = "",
@@ -493,7 +537,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   if (!bed.empty()) {
     primers = populate_from_file(bed, primer_offset);
     if (primers.size() == 0) {
-      std::cout << "Exiting." << std::endl;
+      std::cerr << "Exiting." << std::endl;
       return -1;
     }
   }
@@ -502,84 +546,46 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   IntervalTree amplicons;
   if (!pair_info.empty()) {
     amplicons = populate_amplicons(pair_info, primers);
+    std::cerr << "Amplicons detected: " << std::endl;
+    amplicons.inOrder();
   }
 
-  std::cout << "Amplicons detected: " << std::endl;
-  amplicons.inOrder();
-  if (bam.empty()) {
-    std::cout << "Bam file is empty." << std::endl;
-    return -1;
+  // Read in input file
+  samFile *in;
+  if(bam.empty()) {
+    std::cerr << "Reading from stdin" << std::endl;
+    in = sam_open("-", "r");
+  } else {
+    in = sam_open(bam.c_str(), "r");
+    std::cerr << "Reading from " << bam << std::endl;
   }
-  bam_out += ".bam";
-  samFile *in = hts_open(bam.c_str(), "r");
-  BGZF *out = bgzf_open(bam_out.c_str(), "w");
   if (in == NULL) {
-    std::cout << ("Unable to open BAM file.") << std::endl;
+    std::cerr << ("Unable to open input file.") << std::endl;
     return -1;
   }
-  // Load the index
-  hts_idx_t *idx = sam_index_load(in, bam.c_str());
-  if (idx == NULL) {
-    std::cout << "Building BAM index" << std::endl;
-    if (sam_index_build2(bam.c_str(), 0, 0) < 0) {
-      std::cout << ("Unable to open or build BAM index.") << std::endl;
-      return -1;
-    } else {
-      idx = sam_index_load(in, bam.c_str());
-    }
+
+  // Setup output file
+  samFile *out;
+  if(bam_out.empty()) {
+    out = sam_open("-", "w");
+  } else {
+    bam_out += ".bam";
+    out = sam_open(bam_out.c_str(), "wb");
   }
+
   // Get the header
-  bam_hdr_t *header = sam_hdr_read(in);
+  sam_hdr_t *header = sam_hdr_read(in);
   if (header == NULL) {
-    sam_close(in);
-    std::cout << "Unable to open BAM header." << std::endl;
+    std::cerr << "Unable to read header from input file." << std::endl;
+    return -1;
   }
   add_pg_line_to_header(&header, const_cast<char *>(cmd.c_str()));
-  if (bam_hdr_write(out, header) < 0) {
-    std::cout << "Unable to write BAM header to path." << std::endl;
+  if (sam_hdr_write(out, header) < 0) {
+    std::cerr << "Unable to write BAM header to path." << std::endl;
     sam_close(in);
     return -1;
   }
-  // Get relevant region
-  int region_id = -1;
-  uint64_t unmapped, mapped, log_skip;
-  std::cout << std::endl
-            << "Number of references in file: " << header->n_targets
-            << std::endl;
-  for (int i = 0; i < header->n_targets; ++i) {
-    std::cout << header->target_name[i] << std::endl;
-    if (region_.compare(std::string(header->target_name[i])) == 0) {
-      region_id = i;
-    }
-    if (i == 0) {  // Reading only first reference
-      region_.assign(header->target_name[i]);
-      region_id = i;
-    }
-  }
-  std::cout << "Using Region: " << region_ << std::endl << std::endl;
-  // Get index stats
-  hts_idx_get_stat(idx, region_id, &mapped, &unmapped);
-  std::cout << "Found " << mapped << " mapped reads" << std::endl;
-  std::cout << "Found " << unmapped << " unmapped reads" << std::endl;
-  std::string hdr_text(header->text);
-  if (hdr_text.find(std::string("SO:coordinate")) != std::string::npos) {
-    std::cout << "Sorted By Coordinate" << std::endl;  // Sort by coordinate
-  } else if (hdr_text.find(std::string("SO:queryname")) != std::string::npos) {
-    std::cout << "Sorted By Query Name" << std::endl;  // Sort by name
-  } else {
-    std::cout << "Not sorted" << std::endl;
-  }
-  std::cout << "-------" << std::endl;
-  log_skip = (mapped + unmapped > 10) ? (mapped + unmapped) / 10 : 2;
-  // Initialize iterator
-  hts_itr_t *iter = NULL;
-  // Move the iterator to the region we are interested in
-  iter = sam_itr_querys(idx, header, region_.c_str());
-  if (header == NULL || iter == NULL) {
-    sam_close(in);
-    std::cout << "Unable to iterate to region within BAM/SAM." << std::endl;
-    return -1;
-  }
+
   // Initiate the alignment record
   bam1_t *aln = bam_init1();
   int ctr = 0;
@@ -596,7 +602,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   std::vector<primer> overlapping_primers;
   std::vector<primer>::iterator cit;
   bool primer_trimmed = false;
-  std::string test = "NB552570:188:HL75JAFX3:2:21105:7297:5549";
+
 
   //make default min_length default of expected read length
   if(min_length == -1){
@@ -612,12 +618,12 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   }
   //reset the iterator
   iter = sam_itr_querys(idx, header, region_.c_str());
+  std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
   // Iterate through reads
-  while (sam_itr_next(in, iter, aln) >= 0) {
+  while (sam_read1(in, header, aln) >= 0) {
     unmapped_flag = false;
     primer_trimmed = false;
-
-    get_overlapping_primers(aln, primers, overlapping_primers);
+    get_overlapping_primers(aln, sorted_primers, overlapping_primers);
 
     if ((aln->core.flag & BAM_FUNMAP) == 0) {  // If mapped
       // if primer pair info provided, check if read correctly overlaps with
@@ -627,7 +633,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
         if (!amplicon_flag) {
           if (keep_for_reanalysis) {  // -k (keep) option
             aln->core.flag |= BAM_FQCFAIL;
-            if (bam_write1(out, aln) < 0) {
+            if (sam_write1(out, header, aln) < 0) {
               retval = -1;
               goto error;
             }
@@ -643,7 +649,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
           (abs(aln->core.isize) - max_primer_len) > abs(aln->core.l_qseq);
       // if reverse strand
       if ((aln->core.flag & BAM_FPAIRED) != 0 && isize_flag) {  // If paired
-        get_overlapping_primers(aln, primers, overlapping_primers);
+        get_overlapping_primers(aln, sorted_primers, overlapping_primers);
         if (overlapping_primers.size() >
             0) {  // If read starts before overlapping regions (?)
           primer_trimmed = true;
@@ -722,7 +728,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
       if (primer_trimmed) {  // Write to BAM only if primer found.
         int16_t cand_ind = cand_primer.get_indice();
         bam_aux_append(aln, "XA", 's', sizeof(cand_ind), (uint8_t *)&cand_ind);
-        if (bam_write1(out, aln) < 0) {
+        if (sam_write1(out, header, aln) < 0) {
           retval = -1;
           goto error;
         }
@@ -732,14 +738,14 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
               !unmapped_flag) {  // -k only option
             aln->core.flag |= BAM_FQCFAIL;
           }
-          if (bam_write1(out, aln) < 0) {
+          if (sam_write1(out, header, aln) < 0) {
             retval = -1;
             goto error;
           }
         } else {  // no -k option
           if ((primers.size() == 0 || write_no_primer_reads) &&
               !unmapped_flag) {  // -e only option
-            if (bam_write1(out, aln) < 0) {
+            if (sam_write1(out, header, aln) < 0) {
               retval = -1;
               goto error;
             }
@@ -751,85 +757,83 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
       low_quality++;
       if (keep_for_reanalysis) {
         aln->core.flag |= BAM_FQCFAIL;
-        if (bam_write1(out, aln) < 0) {
+        if (sam_write1(out, header, aln) < 0) {
           retval = -1;
           goto error;
         }
       }
     }
     ctr++;
-    if (ctr % log_skip == 0) {
-      std::cout << "Processed " << (ctr / log_skip) * 10 << "% reads ... "
+    if (ctr % 1000000 == 0) { // TODO: Let this be a parameter
+      std::cerr << "Processed " << ctr << " reads ... "
                 << std::endl;
     }
   }
-  std::cout << std::endl << "-------" << std::endl;
-  std::cout << "Results: " << std::endl;
-  std::cout << "Primer Name"
+  std::cerr << std::endl << "-------" << std::endl;
+  std::cerr << "Results: " << std::endl;
+  std::cerr << "Primer Name"
             << "\t"
             << "Read Count" << std::endl;
   for (cit = primers.begin(); cit != primers.end(); ++cit) {
-    std::cout << cit->get_name() << "\t" << cit->get_read_count() << std::endl;
+    std::cerr << cit->get_name() << "\t" << cit->get_read_count() << std::endl;
   }
-  std::cout << std::endl
-            << "Trimmed primers from " << round_int(primer_trim_count, mapped)
+  std::cerr << std::endl
+            << "Trimmed primers from " << round_int(primer_trim_count, ctr)
             << "% (" << primer_trim_count << ") of reads." << std::endl;
-  std::cout << round_int(low_quality, mapped) << "% (" << low_quality
+  std::cerr << round_int(low_quality, ctr) << "% (" << low_quality
             << ") of reads were quality trimmed below the minimum length of "
             << min_length << " bp and were ";
   if (keep_for_reanalysis) {
-    std::cout << "marked as failed" << std::endl;
+    std::cerr << "marked as failed" << std::endl;
   } else {
-    std::cout << "not written to file." << std::endl;
+    std::cerr << "not written to file." << std::endl;
   }
   if (write_no_primer_reads) {
-    std::cout << round_int(no_primer_counter, mapped) << "% ("
+    std::cerr << round_int(no_primer_counter, ctr) << "% ("
               << no_primer_counter << ")"
               << " of reads started outside of primer regions. Since the "
               << (keep_for_reanalysis ? "-ek flags were " : "-e flag was ")
               << "given, these reads were written to file";
-    std::cout << "." << std::endl;
+    std::cerr << "." << std::endl;
   } else if (primers.size() == 0) {
-    std::cout
-        << round_int(no_primer_counter, mapped) << "% (" << no_primer_counter
+    std::cerr
+        << round_int(no_primer_counter, ctr) << "% (" << no_primer_counter
         << ") of reads started outside of primer regions. Since there were no "
            "primers found in BED file, these reads were written to file."
         << std::endl;
   } else {
-    std::cout << round_int(no_primer_counter, mapped) << "% ("
+    std::cerr << round_int(no_primer_counter, ctr) << "% ("
               << no_primer_counter
               << ") of reads that started outside of primer regions were ";
     if (keep_for_reanalysis) {
-      std::cout << "written to file and marked as failed";
+      std::cerr << "written to file and marked as failed";
     } else {
-      std::cout << "not written to file";
+      std::cerr << "not written to file";
     }
-    std::cout << std::endl;
+    std::cerr << std::endl;
   }
   if (unmapped_counter > 0) {
-    std::cout << unmapped_counter << " unmapped reads were not written to file."
+    std::cerr << unmapped_counter << " unmapped reads were not written to file."
               << std::endl;
   }
   if (amplicon_flag_ctr > 0) {
-    std::cout
-        << round_int(amplicon_flag_ctr, mapped) << "% (" << amplicon_flag_ctr
+    std::cerr
+        << round_int(amplicon_flag_ctr, ctr) << "% (" << amplicon_flag_ctr
         << ") reads were ignored because they did not fall within an amplicon"
         << std::endl;
   }
   if (failed_frag_size > 0) {
-    std::cout
-        << round_int(failed_frag_size, mapped) << "% (" << failed_frag_size
+    std::cerr
+        << round_int(failed_frag_size, ctr) << "% (" << failed_frag_size
         << ") of reads had their insert size smaller than their read length"
         << std::endl;
   }
 
-error:
-  if (retval) std::cout << "Not able to write to BAM" << std::endl;
-  hts_itr_destroy(iter);
-  hts_idx_destroy(idx);
+  error:
+    if (retval) std::cerr << "Not able to write to BAM" << std::endl;
   bam_destroy1(aln);
   bam_hdr_destroy(header);
   sam_close(in);
-  bgzf_close(out);
+  sam_close(out);
   return retval;
 }

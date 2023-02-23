@@ -159,7 +159,7 @@ ret_t get_consensus_allele(std::vector<allele> ad, uint8_t min_qual,
 
 int call_consensus_from_plup(std::istream &cin, std::string seq_id,
                              std::string out_file, uint8_t min_qual,
-                             double threshold, uint8_t min_depth, char gap,
+                             double threshold, uint32_t min_depth, char gap,
                              bool min_coverage_flag,
                              double min_insert_threshold) {
   std::string line, cell;
@@ -174,8 +174,8 @@ int call_consensus_from_plup(std::istream &cin, std::string seq_id,
     fout << ">" << seq_id << std::endl;
   }
   delete[] o;
-  int ctr = 0, mdepth = 0;
-  uint32_t prev_pos = 0, pos = 0;
+  int ctr = 0;
+  uint32_t prev_pos = 0, pos = 0, mdepth = 0;
   std::stringstream lineStream;
   char ref;
   std::string bases;

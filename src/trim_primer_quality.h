@@ -38,11 +38,10 @@ inline void free_cigar(cigar_ t) {
 void add_pg_line_to_header(bam_hdr_t **hdr, char *cmd);
 
 int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
-                         std::string region_, uint8_t min_qual,
-                         uint8_t sliding_window, std::string cmd,
-                         bool write_no_primer_reads, bool mark_qcfail_flag,
-                         int min_length, std::string pair_info,
-                         int32_t primer_offset);
+                         uint8_t min_qual, uint8_t sliding_window,
+                         std::string cmd, bool write_no_primer_reads,
+                         bool mark_qcfail_flag, int min_length,
+                         std::string pair_info, int32_t primer_offset);
 void free_cigar(cigar_ t);
 int32_t get_pos_on_query(uint32_t *cigar, uint32_t ncigar, int32_t pos,
                          int32_t ref_start);
@@ -64,5 +63,7 @@ void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
                              bool unpaired_rev);
 int get_bigger_primer(std::vector<primer> primers);
 bool amplicon_filter(IntervalTree amplicons, bam1_t *r);
-
+std::vector<primer> insertionSort(std::vector<primer> primers, uint32_t n);
+int binary_search(std::vector<primer> &primers, uint32_t target_pos, int low,
+                  int high);
 #endif
