@@ -389,7 +389,7 @@ std::vector<primer> insertionSort(std::vector<primer> primers, uint32_t n) {
 }
 
 // For paired reads
-void get_overlapping_primers(bam1_t *r, std::vector<primer> primers,
+void get_overlapping_primers(bam1_t *r, std::vector<primer> &primers,
                              std::vector<primer> &overlapped_primers) {
   overlapped_primers.clear();
   uint32_t start_pos = -1;
