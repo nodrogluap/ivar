@@ -67,7 +67,7 @@ void print_usage() {
 
 void print_trim_usage() {
   std::cout
-      << "Usage: ivar trim -i <input.bam> -b <primers.bed> -p <prefix> [-m "
+      << "Usage: ivar trim -i <input.bam> -b <primers.bed> [-p <prefix>] [-m "
          "<min-length>] [-q <min-quality>] [-s <sliding-window-width>]\n\n"
          "Input Options    Description\n"
          "           -i    (Required) BAM file, with aligned reads, to "
@@ -94,7 +94,7 @@ void print_trim_usage() {
          "                 alignment length filter or primer requirements, but "
          "mark them QCFAIL\n\n"
          "Output Options   Description\n"
-         "           -p    (Required) Prefix for the output BAM file\n";
+         "           -p    Prefix for the output BAM file. If none is specified output will go to std out\n";
 }
 
 void print_variants_usage() {
