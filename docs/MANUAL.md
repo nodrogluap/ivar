@@ -57,12 +57,13 @@ Input Options    Description
                  alignment length filter or primer requirements, but mark them QCFAIL
 
 Output Options   Description
-           -p    (Required) Prefix for the output BAM file
+           -p    Prefix for the output BAM file. If none is specified the output will write to standard out.
 ```
 
 Example Usage:
 ```
 ivar trim -b test_primers.bed -p test.trimmed -i test.bam -q 15 -m 50 -s 4
+samtools view -h test.bam | ivar trim -b test_primers.bed -p test.trimmed 
 ```
 
 The command above will produce a trimmed BAM file test.trimmed.bam after trimming the aligned reads in test.bam using the primer positions specified in test_primers.bed and a minimum quality threshold of **15**, minimum read length of **50** and a sliding window of **4**.
