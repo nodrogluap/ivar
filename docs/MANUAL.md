@@ -45,7 +45,7 @@ ivar trim
 Usage: ivar trim -i <input.bam> -b <primers.bed> [-p <prefix>] [-m <min-length>] [-q <min-quality>] [-s <sliding-window-width>]
 
 Input Options    Description
-           -i    (Required) Sorted bam file, with aligned reads, to trim primers and quality
+           -i    (Required) Sorted bam file or standard in, with aligned reads, to trim primers and quality
            -b    (Required) BED file with primer sequences and positions
            -f    Primer pair information file containing left and right primer names for the same amplicon separated by a tab
                  If provided, reads will be filtered based on their overlap with amplicons prior to trimming
