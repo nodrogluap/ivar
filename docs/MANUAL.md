@@ -42,7 +42,7 @@ Command:
 ```
 ivar trim
 
-Usage: ivar trim -i <input.bam> -b <primers.bed> -p <prefix> [-m <min-length>] [-q <min-quality>] [-s <sliding-window-width>]
+Usage: ivar trim -i <input.bam> -b <primers.bed> [-p <prefix>] [-m <min-length>] [-q <min-quality>] [-s <sliding-window-width>]
 
 Input Options    Description
            -i    (Required) Sorted bam file, with aligned reads, to trim primers and quality
@@ -67,6 +67,13 @@ samtools view -h test.bam | ivar trim -b test_primers.bed -p test.trimmed
 ```
 
 The command above will produce a trimmed BAM file test.trimmed.bam after trimming the aligned reads in test.bam using the primer positions specified in test_primers.bed and a minimum quality threshold of **15**, minimum read length of **50** and a sliding window of **4**.
+
+Example Usage:
+```
+bwa mem -t 32 reference.fa 1.fq 2.fq | samtools view -h -F 4 -F 2048 | samtools sort - | ivar trim -b test_primers.bed | samtools sort - | samtools mpileup -aa -A -Q 0 -d 0 - | ivar consensus -p test_consensus -m 10 -n N -t 0.5
+```
+
+The command above will allow you to go from alignment to consensus sequence in a single command using the bwa aligner.
 
 Example BED file
 
