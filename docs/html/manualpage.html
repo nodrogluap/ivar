@@ -125,14 +125,14 @@ Trim primer sequences with iVar</h2>
 </div><!-- fragment --><p ><b>Note</b>: All the trimming in iVar is done by soft-clipping reads in an aligned BAM file. This information is lost if reads are extracted in fastq or fasta format from the trimmed BAM file.</p>
 <p >Command: </p><div class="fragment"><div class="line">ivar trim</div>
 <div class="line"> </div>
-<div class="line">Usage: ivar trim -i &lt;input.bam&gt; -b &lt;primers.bed&gt; [-p &lt;prefix&gt;] [-m &lt;min-length&gt;] [-q &lt;min-quality&gt;] [-s &lt;sliding-window-width&gt;]</div>
+<div class="line">Usage: ivar trim -i [&lt;input.bam&gt;] -b &lt;primers.bed&gt; [-p &lt;prefix&gt;] [-m &lt;min-length&gt;] [-q &lt;min-quality&gt;] [-s &lt;sliding-window-width&gt;]</div>
 <div class="line"> </div>
 <div class="line">Input Options    Description</div>
-<div class="line">           -i    (Required) Sorted bam file or standard in, with aligned reads, to trim primers and quality</div>
+<div class="line">           -i    Sorted bam file, with aligned reads, to trim primers and quality. If not specified will read from standard in</div>
 <div class="line">           -b    (Required) BED file with primer sequences and positions</div>
 <div class="line">           -f    Primer pair information file containing left and right primer names for the same amplicon separated by a tab</div>
 <div class="line">                 If provided, reads will be filtered based on their overlap with amplicons prior to trimming</div>
-<div class="line">           -m    Minimum length of read to retain after trimming (Default: 30)</div>
+<div class="line">           -m    Minimum length of read to retain after trimming (Default: 50% the average length of the first 1000 reads)</div>
 <div class="line">           -q    Minimum quality threshold for sliding window to pass (Default: 20)</div>
 <div class="line">           -s    Width of sliding window (Default: 4)</div>
 <div class="line">           -e    Include reads with no primers. By default, reads with no primers are excluded</div>

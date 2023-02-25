@@ -44,14 +44,14 @@ Command\+:
 \begin{DoxyCode}{0}
 \DoxyCodeLine{ivar trim}
 \DoxyCodeLine{}
-\DoxyCodeLine{Usage: ivar trim -\/i <input.bam> -\/b <primers.bed> [-\/p <prefix>] [-\/m <min-\/length>] [-\/q <min-\/quality>] [-\/s <sliding-\/window-\/width>]}
+\DoxyCodeLine{Usage: ivar trim -\/i [<input.bam>] -\/b <primers.bed> [-\/p <prefix>] [-\/m <min-\/length>] [-\/q <min-\/quality>] [-\/s <sliding-\/window-\/width>]}
 \DoxyCodeLine{}
 \DoxyCodeLine{Input Options    Description}
-\DoxyCodeLine{           -\/i    (Required) Sorted bam file or standard in, with aligned reads, to trim primers and quality}
+\DoxyCodeLine{           -\/i    Sorted bam file, with aligned reads, to trim primers and quality. If not specified will read from standard in}
 \DoxyCodeLine{           -\/b    (Required) BED file with primer sequences and positions}
 \DoxyCodeLine{           -\/f    Primer pair information file containing left and right primer names for the same amplicon separated by a tab}
 \DoxyCodeLine{                 If provided, reads will be filtered based on their overlap with amplicons prior to trimming}
-\DoxyCodeLine{           -\/m    Minimum length of read to retain after trimming (Default: 30)}
+\DoxyCodeLine{           -\/m    Minimum length of read to retain after trimming (Default: 50\% the average length of the first 1000 reads)}
 \DoxyCodeLine{           -\/q    Minimum quality threshold for sliding window to pass (Default: 20)}
 \DoxyCodeLine{           -\/s    Width of sliding window (Default: 4)}
 \DoxyCodeLine{           -\/e    Include reads with no primers. By default, reads with no primers are excluded}
