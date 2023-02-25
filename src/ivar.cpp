@@ -67,11 +67,11 @@ void print_usage() {
 
 void print_trim_usage() {
   std::cout
-      << "Usage: ivar trim -i <input.bam> -b <primers.bed> [-p <prefix>] [-m "
+      << "Usage: ivar trim -i [<input.bam>] -b <primers.bed> [-p <prefix>] [-m "
          "<min-length>] [-q <min-quality>] [-s <sliding-window-width>]\n\n"
          "Input Options    Description\n"
-         "           -i    (Required) BAM file, with aligned reads, to "
-         "trim primers and quality\n"
+         "           -i    BAM file, with aligned reads, to "
+         "trim primers and quality. If not specified will use standard in\n"
          "           -b    BED file with primer sequences and positions. If no "
          "BED file is specified, only quality trimming will be done.\n"
          "           -f    [EXPERIMENTAL] Primer pair information file "
@@ -83,7 +83,7 @@ void print_trim_usage() {
          "occur at the specified offset positions relative to primer positions "
          "will also be trimmed.\n"
          "           -m    Minimum length of read to retain after trimming "
-         "(Default: 30)\n"
+         "(Default: 50% average length of the first 1000 reads)\n"
          "           -q    Minimum quality threshold for sliding window to "
          "pass (Default: 20)\n"
          "           -s    Width of sliding window (Default: 4)\n"
