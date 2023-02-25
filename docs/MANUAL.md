@@ -70,7 +70,7 @@ The command above will produce a trimmed BAM file test.trimmed.bam after trimmin
 
 Example Usage:
 ```
-bwa mem -t 32 reference.fa 1.fq 2.fq | samtools view -h -F 4 -F 2048 | samtools sort - | ivar trim -b test_primers.bed | samtools sort - | samtools mpileup -aa -A -Q 0 -d 0 - | ivar consensus -p test_consensus -m 10 -n N -t 0.5
+bwa mem -t 32 reference.fa 1.fq 2.fq | ivar trim -b test_primers.bed -x 3 -m 30 | samtools sort - | samtools mpileup -aa -A -Q 0 -d 0 - | ivar consensus -p test_consensus -m 10 -n N -t 0.5
 ```
 
 The command above will allow you to go from alignment to consensus sequence in a single command using the bwa aligner.

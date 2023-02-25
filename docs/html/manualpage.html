@@ -144,7 +144,7 @@ Trim primer sequences with iVar</h2>
 </div><!-- fragment --><p >Example Usage: </p><div class="fragment"><div class="line">ivar trim -b test_primers.bed -p test.trimmed -i test.bam -q 15 -m 50 -s 4</div>
 <div class="line">samtools view -h test.bam | ivar trim -b test_primers.bed -p test.trimmed </div>
 </div><!-- fragment --><p >The command above will produce a trimmed BAM file test.trimmed.bam after trimming the aligned reads in test.bam using the primer positions specified in test_primers.bed and a minimum quality threshold of <b>15</b>, minimum read length of <b>50</b> and a sliding window of <b>4</b>.</p>
-<p >Example Usage: </p><div class="fragment"><div class="line">bwa mem -t 32 reference.fa 1.fq 2.fq | samtools view -h -F 4 -F 2048 | samtools sort - | ivar trim -b test_primers.bed | samtools sort - | samtools mpileup -aa -A -Q 0 -d 0 - | ivar consensus -p test_consensus -m 10 -n N -t 0.5</div>
+<p >Example Usage: </p><div class="fragment"><div class="line">bwa mem -t 32 reference.fa 1.fq 2.fq | ivar trim -b test_primers.bed -x 3 -m 30 | samtools sort - | samtools mpileup -aa -A -Q 0 -d 0 - | ivar consensus -p test_consensus -m 10 -n N -t 0.5</div>
 </div><!-- fragment --><p >The command above will allow you to go from alignment to consensus sequence in a single command using the bwa aligner.</p>
 <p >Example BED file</p>
 <div class="fragment"><div class="line">Puerto  28  52  400_1_out_L 60  +</div>
