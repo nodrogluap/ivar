@@ -288,6 +288,7 @@ Note : samtools mpileup output must be piped into ivar consensus
 Input Options    Description
            -q    Minimum quality score threshold to count base (Default: 20)
            -t    Minimum frequency threshold(0 - 1) to call consensus. (Default: 0)
+           -c    Minimum insertion frequency threshold(0 - 1) to call consensus. (Default: 0.8)
                  Frequently used thresholds | Description
                  ---------------------------|------------
                                           0 | Majority or most common base
