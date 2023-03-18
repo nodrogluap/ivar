@@ -629,10 +629,10 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
 
   int iterate_reads = 0;
-  std::vector<bam1_t *> aln_itr;
+  std::vector<bam1_t *>::iterator aln_itr;
   if (alns.size() > 0) {
     aln_itr = alns.begin();
-    aln = (*aln_itr);
+    aln = *aln_itr;
     iterate_reads = 1;
   } else {
     iterate_reads = sam_read1(in, header, aln);
@@ -790,7 +790,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
     iterate_reads = 0;
     aln_itr++;
     if (aln_itr != alns.end()) {
-      aln = (*aln_itr);
+      aln = *aln_itr;
       iterate_reads = 1;
     } else {
       iterate_reads = sam_read1(in, header, aln);
