@@ -616,6 +616,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
     int32_t read_itr = 0;
     while(sam_read1(in, header, aln) >= 0 && read_itr < 1000){
       total_length += aln->core.l_qseq;
+      tmp_aln = bam_init1();
       tmp_aln = bam_copy1(tmp_aln, aln);
       alns.push_back(tmp_aln);
       read_itr++;
