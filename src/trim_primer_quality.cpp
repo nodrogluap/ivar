@@ -608,27 +608,25 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   bool primer_trimmed = false;
 
   std::vector<bam1_t *> alns;
-  std::vector<sam_hdr_t *> headers;
+  bam1_t *tmp_aln = bam_init1();
 
   //make default min_length default of expected read length
   if(min_length == -1){
     int32_t total_length = 0;
-    int32_t count_reads = 0;
-    while(sam_read1(in, header, aln) >= 0 && count_reads < 1000){
+    int32_t read_itr = 0;
+    while(sam_read1(in, header, aln) >= 0 && read_itr < 1000){
       total_length += aln->core.l_qseq;
-      bam1_t *trial1 = bam_init1();
-      trial1 = bam_copy1(trial1, aln);
-      alns.push_back(trial1);
-      count_reads++;
-      headers.push_back(header);
+      tmp_aln = bam_copy1(tmp_aln, aln);
+      alns.push_back(tmp_aln);
+      read_itr++;
     }
-    int32_t percent_query = 0.50 * (total_length / count_reads);
+    int32_t percent_query = 0.50 * (total_length / read_itr);
     min_length = percent_query;
-    std::cerr << "Minimum Read Length: " << min_length << std::endl;
+    std::cerr << "Minimum Read Length based on " << read_itr << " reads: " << min_length << std::endl;
   }
   std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
 
-  int iterate_reads = 0;
+  int iterate_reads = -1;
   std::vector<bam1_t *>::iterator aln_itr;
   if (alns.size() > 0) {
     aln_itr = alns.begin();
@@ -639,11 +637,10 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   }
 
   // Iterate through reads
-  while (iterate_reads) {
+  while (iterate_reads >= 0) {
     unmapped_flag = false;
     primer_trimmed = false;
     get_overlapping_primers(aln, sorted_primers, overlapping_primers);
-
     if ((aln->core.flag & BAM_FUNMAP) == 0) {  // If mapped
       // if primer pair info provided, check if read correctly overlaps with
       // atleast one amplicon
@@ -787,9 +784,9 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
       std::cerr << "Processed " << ctr << " reads ... " << std::endl;
     }
     // Go to next read
-    iterate_reads = 0;
+    iterate_reads = -1;
     aln_itr++;
-    if (aln_itr != alns.end()) {
+    if (aln_itr < alns.end() && alns.size() > 0) {
       aln = *aln_itr;
       iterate_reads = 1;
     } else {
