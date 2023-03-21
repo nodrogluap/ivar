@@ -70,8 +70,8 @@ bool IntervalTree::envelopSearch(ITNode *root, Interval i) {
 void IntervalTree::inOrder(ITNode *root) {
   if (root == NULL) return;
   inOrder(root->left);
-  cout << "[" << root->data->low << ", " << root->data->high << "]"
-       << " max = " << root->max << endl;
+  std::cerr << "[" << root->data->low << ", " << root->data->high << "]"
+            << " max = " << root->max << endl;
   inOrder(root->right);
 }
 
