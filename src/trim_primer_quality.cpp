@@ -529,10 +529,10 @@ bool amplicon_filter(IntervalTree amplicons, bam1_t *r) {
 }
 
 int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
-                         uint8_t min_qual,
-                         uint8_t sliding_window, std::string cmd,
-                         bool write_no_primer_reads, bool keep_for_reanalysis,
-                         int min_length = -1, std::string pair_info = "",
+                         uint8_t min_qual, uint8_t sliding_window,
+                         std::string cmd, bool write_no_primer_reads,
+                         bool keep_for_reanalysis, int min_length = -1,
+                         std::string pair_info = "",
                          int32_t primer_offset = 0) {
   int retval = 0;
   std::vector<primer> primers;
@@ -555,6 +555,7 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
 
   // Read in input file
   samFile *in;
+  
   if(bam.empty()) {
     std::cerr << "Reading from stdin" << std::endl;
     in = sam_open("-", "r");
@@ -606,32 +607,41 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   std::vector<primer>::iterator cit;
   bool primer_trimmed = false;
 
+  std::vector<bam1_t *> alns;
+  bam1_t *tmp_aln = bam_init1();
+
   //make default min_length default of expected read length
   if(min_length == -1){
     int32_t total_length = 0;
-    int32_t count_reads = 0;
-    while(sam_read1(in, header, aln) >= 0 && count_reads < 1000){
-      count_reads += 1;
+    int32_t read_itr = 0;
+    while(sam_read1(in, header, aln) >= 0 && read_itr < 1000){
       total_length += aln->core.l_qseq;
+      tmp_aln = bam_init1();
+      tmp_aln = bam_copy1(tmp_aln, aln);
+      alns.push_back(tmp_aln);
+      read_itr++;
     }
-    int32_t percent_query = 0.50 * (total_length / count_reads);
-    min_length = percent_query;   
-    std::cerr << "Minimum Read Length: " << min_length << std::endl; 
+    int32_t percent_query = 0.50 * (total_length / read_itr);
+    min_length = percent_query;
+    std::cerr << "Minimum Read Length based on " << read_itr << " reads: " << min_length << std::endl;
+  }
+  std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
+
+  int iterate_reads = -1;
+  std::vector<bam1_t *>::iterator aln_itr;
+  if (alns.size() > 0) {
+    aln_itr = alns.begin();
+    aln = *aln_itr;
+    iterate_reads = 1;
+  } else {
+    iterate_reads = sam_read1(in, header, aln);
   }
 
-  //reset the iterator
-  std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
-  in = sam_open(bam.c_str(), "r");
-  header = sam_hdr_read(in);
-  add_pg_line_to_header(&header, const_cast<char *>(cmd.c_str()));
-  aln = bam_init1(); 
-
   // Iterate through reads
-  while (sam_read1(in, header, aln) >= 0) {
+  while (iterate_reads >= 0) {
     unmapped_flag = false;
     primer_trimmed = false;
     get_overlapping_primers(aln, sorted_primers, overlapping_primers);
-
     if ((aln->core.flag & BAM_FUNMAP) == 0) {  // If mapped
       // if primer pair info provided, check if read correctly overlaps with
       // atleast one amplicon
@@ -771,9 +781,17 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
       }
     }
     ctr++;
-    if (ctr % 1000000 == 0) { // TODO: Let this be a parameter
-      std::cerr << "Processed " << ctr << " reads ... "
-                << std::endl;
+    if (ctr % 1000000 == 0) {  // TODO: Let this be a parameter
+      std::cerr << "Processed " << ctr << " reads ... " << std::endl;
+    }
+    // Go to next read
+    iterate_reads = -1;
+    aln_itr++;
+    if (aln_itr < alns.end() && alns.size() > 0) {
+      aln = *aln_itr;
+      iterate_reads = 1;
+    } else {
+      iterate_reads = sam_read1(in, header, aln);
     }
   }
   std::cerr << std::endl << "-------" << std::endl;
