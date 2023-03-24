@@ -656,6 +656,15 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
             }
           }
           amplicon_flag_ctr++;
+          // go to the next read
+          iterate_reads = -1;
+          aln_itr++;
+          if (aln_itr < alns.end() && alns.size() > 0) {
+            aln = *aln_itr;
+            iterate_reads = 1;
+          } else {
+            iterate_reads = sam_read1(in, header, aln);
+          }
           continue;
         }
       }
@@ -739,7 +748,16 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
     } else {
       unmapped_flag = true;
       unmapped_counter++;
-      continue;
+      //go to the next read
+      iterate_reads = -1;
+      aln_itr++;
+      if (aln_itr < alns.end() && alns.size() > 0) {
+        aln = *aln_itr;
+        iterate_reads = 1;
+      } else {
+        iterate_reads = sam_read1(in, header, aln);
+      }
+      continue; //CHANGE HERE
     }
     if (bam_cigar2rlen(aln->core.n_cigar, bam_get_cigar(aln)) >= min_length) {
       if (primer_trimmed) {  // Write to BAM only if primer found.
