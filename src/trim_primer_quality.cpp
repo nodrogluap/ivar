@@ -528,6 +528,20 @@ bool amplicon_filter(IntervalTree amplicons, bam1_t *r) {
   return amplicon_flag;
 }
 
+int iterate_aln(std::vector<bam1_t *>::iterator &aln_itr,
+                std::vector<bam1_t *> &alns, sam_hdr_t *&header, samFile *&in,
+                bam1_t *&aln) {
+  int iterate_reads;
+  aln_itr++;
+  if (aln_itr < alns.end() && alns.size() > 0) {
+    aln = *aln_itr;
+    iterate_reads = 1;
+  } else {
+    iterate_reads = sam_read1(in, header, aln);
+  }
+  return iterate_reads;
+}
+
 int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
                          uint8_t min_qual, uint8_t sliding_window,
                          std::string cmd, bool write_no_primer_reads,
@@ -627,18 +641,10 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
   }
   std::vector<primer> sorted_primers = insertionSort(primers, primers.size());
 
-  int iterate_reads = -1;
-  std::vector<bam1_t *>::iterator aln_itr;
-  if (alns.size() > 0) {
-    aln_itr = alns.begin();
-    aln = *aln_itr;
-    iterate_reads = 1;
-  } else {
-    iterate_reads = sam_read1(in, header, aln);
-  }
+  std::vector<bam1_t *>::iterator aln_itr = alns.begin();
 
   // Iterate through reads
-  while (iterate_reads >= 0) {
+  while (iterate_aln(aln_itr, alns, header, in, aln) >= 0) {
     unmapped_flag = false;
     primer_trimmed = false;
     get_overlapping_primers(aln, sorted_primers, overlapping_primers);
@@ -656,15 +662,6 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
             }
           }
           amplicon_flag_ctr++;
-          // go to the next read
-          iterate_reads = -1;
-          aln_itr++;
-          if (aln_itr < alns.end() && alns.size() > 0) {
-            aln = *aln_itr;
-            iterate_reads = 1;
-          } else {
-            iterate_reads = sam_read1(in, header, aln);
-          }
           continue;
         }
       }
@@ -748,15 +745,6 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
     } else {
       unmapped_flag = true;
       unmapped_counter++;
-      //go to the next read
-      iterate_reads = -1;
-      aln_itr++;
-      if (aln_itr < alns.end() && alns.size() > 0) {
-        aln = *aln_itr;
-        iterate_reads = 1;
-      } else {
-        iterate_reads = sam_read1(in, header, aln);
-      }
       continue; //CHANGE HERE
     }
     if (bam_cigar2rlen(aln->core.n_cigar, bam_get_cigar(aln)) >= min_length) {
@@ -801,15 +789,6 @@ int trim_bam_qual_primer(std::string bam, std::string bed, std::string bam_out,
     ctr++;
     if (ctr % 1000000 == 0) {  // TODO: Let this be a parameter
       std::cerr << "Processed " << ctr << " reads ... " << std::endl;
-    }
-    // Go to next read
-    iterate_reads = -1;
-    aln_itr++;
-    if (aln_itr < alns.end() && alns.size() > 0) {
-      aln = *aln_itr;
-      iterate_reads = 1;
-    } else {
-      iterate_reads = sam_read1(in, header, aln);
     }
   }
   std::cerr << std::endl << "-------" << std::endl;
