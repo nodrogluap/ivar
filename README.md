@@ -1,5 +1,7 @@
-iVar
+iVar - simplified for for Illumina MiSeq output without replicates
 ===========
+
+*This fork of the iVar software simplifies the variant calling pipeline Snakemake so that replicate samples are no required, and the default naming conversion for Illumin a MiSeq FASTQ files is honoured. You should be able to run this on the output of a bcl2fastq conversion.*
 
 ![C/C++ CI](https://github.com/andersen-lab/ivar/workflows/C/C++%20CI/badge.svg) [![DOI](https://zenodo.org/badge/143471288.svg)](https://zenodo.org/badge/latestdoi/143471288) [![install with conda](https://anaconda.org/bioconda/ivar/badges/version.svg)](https://anaconda.org/bioconda/ivar) [![install with conda](https://anaconda.org/bioconda/ivar/badges/platforms.svg)](https://anaconda.org/bioconda/ivar)
 
